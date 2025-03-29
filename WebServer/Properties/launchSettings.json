@@ -20,6 +20,16 @@
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation"
       }
+    },
+    "LAN": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "applicationUrl": "https://你的區網IP:7245;http://你的區網IP:5077", // 記得改
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation"
+      }
     }
   }
 }

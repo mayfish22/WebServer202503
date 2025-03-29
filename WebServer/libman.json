@@ -1,0 +1,18 @@
+{
+  "version": "3.0",
+  "defaultProvider": "cdnjs",
+  "libraries": [
+    {
+      "library": "datatables.net@2.2.2",
+      "destination": "wwwroot/lib/datatables.net/"
+    },
+    {
+      "library": "datatables.net-bs5@2.2.2",
+      "destination": "wwwroot/lib/datatables.net-bs5/"
+    },
+    {
+      "library": "moment.js@2.30.1",
+      "destination": "wwwroot/lib/moment.js/"
+    }
+  ]
+}

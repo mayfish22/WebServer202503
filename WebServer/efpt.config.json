@@ -15,6 +15,10 @@
    "T4TemplatePath": null,
    "Tables": [
       {
+         "Name": "[dbo].[FileStorage]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[User]",
          "ObjectType": 0
       }
@@ -25,7 +29,7 @@
    "UseBoolPropertiesWithoutDefaultSql": false,
    "UseDatabaseNames": true,
    "UseDatabaseNamesForRoutines": true,
-   "UseDateOnlyTimeOnly": false,
+   "UseDateOnlyTimeOnly": true,
    "UseDbContextSplitting": false,
    "UseDecimalDataAnnotationForSprocResult": true,
    "UseFluentApiOnly": true,

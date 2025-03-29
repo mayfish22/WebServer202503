@@ -13,11 +13,30 @@ public partial class WebServerDBContext : DbContext
     {
     }
 
+    public virtual DbSet<FileStorage> FileStorage { get; set; }
+
     public virtual DbSet<User> User { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.UseCollation("Chinese_Taiwan_Stroke_CI_AS");
+
+        modelBuilder.Entity<FileStorage>(entity =>
+        {
+            entity.HasKey(e => e.ID).HasName("PK__FileStor__3214EC2771B04594");
+
+            entity.Property(e => e.ID).ValueGeneratedNever();
+            entity.Property(e => e.CreatedDT).HasColumnType("datetime");
+            entity.Property(e => e.FileName)
+                .IsRequired()
+                .HasMaxLength(200);
+            entity.Property(e => e.Path)
+                .IsRequired()
+                .HasMaxLength(400);
+            entity.Property(e => e.Type)
+                .IsRequired()
+                .HasMaxLength(50);
+        });
 
         modelBuilder.Entity<User>(entity =>
         {
@@ -29,7 +48,6 @@ public partial class WebServerDBContext : DbContext
                 .IsRequired()
                 .HasMaxLength(50);
             entity.Property(e => e.Address).HasMaxLength(100);
-            entity.Property(e => e.Birthday).HasColumnType("date");
             entity.Property(e => e.CreatedDT).HasColumnType("datetime");
             entity.Property(e => e.Email)
                 .IsRequired()

@@ -55,6 +55,8 @@
     <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
     <script src="/assets/js/config.js"></script>
 
+    <link rel="stylesheet" href="/lib/datatables.net-bs5/datatables.bootstrap5.css" asp-append-version="true" />
+
     @await RenderSectionAsync("Styles", required: false)
 </head>
 
@@ -181,6 +183,10 @@
     <!-- Page JS -->
     <!-- Place this tag in your head or just before your close body tag. -->
     <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+    <script src="/lib/datatables.net/datatables.js" asp-append-version="true"></script>
+    <script src="/lib/datatables.net-bs5/datatables.bootstrap5.js" asp-append-version="true"></script>
+    <script src="/lib/moment.js/moment.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
