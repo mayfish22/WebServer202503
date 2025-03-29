@@ -38,7 +38,7 @@ public class SidebarComponent : ViewComponent // 繼承自 ViewComponent 類別
                 new MenuItem // 檔案清單選項
                 {
                     Title = "檔案清單",
-                    URL = "/File/Index",
+                    URL = "/FileStorage/Index",
                     Icon = "menu-icon tf-icons bx bx-images",
                 },
                 new MenuItem // 個人設定選項，包含子選項
