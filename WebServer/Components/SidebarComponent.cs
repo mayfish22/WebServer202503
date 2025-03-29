@@ -35,10 +35,10 @@ public class SidebarComponent : ViewComponent // 繼承自 ViewComponent 類別
                     URL = "/User/Index",
                     Icon = "menu-icon tf-icons bx bx-user",
                 },
-                new MenuItem // 圖片清單選項
+                new MenuItem // 檔案清單選項
                 {
-                    Title = "圖片清單",
-                    URL = "/Image/Index",
+                    Title = "檔案清單",
+                    URL = "/File/Index",
                     Icon = "menu-icon tf-icons bx bx-images",
                 },
                 new MenuItem // 個人設定選項，包含子選項
