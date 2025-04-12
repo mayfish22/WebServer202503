@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using WebServer.Extensions;
+using WebServer.Middlewares;
 using WebServer.Models.WebServerDB;
 using WebServer.Services;
 
@@ -85,6 +86,8 @@ public class Program
             app.UseAuthentication(); // 啟用身份驗證中介軟體
 
             app.UseAuthorization(); // 啟用授權中介軟體
+
+            app.UseMiddleware<HttpRequestLoggingMiddleware>();// 使用自定義的 HTTP 請求日誌中介軟體
 
             // 設定靜態資源的路由
             app.MapStaticAssets();
