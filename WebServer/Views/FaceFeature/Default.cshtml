@@ -1,0 +1,76 @@
+﻿@model WebServer.Models.ViewModels.FaceFeatureViewModel
+
+@{
+    var controller = ViewContext.RouteData.Values["controller"].ToString();
+    var action = ViewContext.RouteData.Values["action"].ToString();
+}
+
+@section Styles {
+    <style>
+
+    </style>
+}
+
+<div class="container-xxl mt-5">
+    <form role="form" asp-action="@action" asp-route-id="@Model.FaceFeature.ID">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="row clearfix">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="body">
+                                <div asp-validation-summary="All" class="text-danger"></div>
+                                <input type="hidden" asp-for="FaceFeature.ID" />
+
+                                <div class="form-group row mt-4">
+                                    <label asp-for="FaceFeature.Name" class="control-label col-md-2 text-end"></label>
+                                    <div class="col-md-8">
+                                        @if (Model.IsReadonly)
+                                        {
+                                            <input readonly type="text" asp-for="FaceFeature.Name" class="form-control" />
+                                        }
+                                        else
+                                        {
+                                            <input type="text" asp-for="FaceFeature.Name" class="form-control" />
+                                        }
+                                    </div>
+                                    <div class="col-md-2">
+                                        <span asp-validation-for="FaceFeature.Name" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-center mt-5 mb-5">
+                                    @if (@action == "Detail")
+                                    {
+                                        <a class="btn btn-sm btn-success" asp-action="Edit" asp-route-id="@Model.FaceFeature.ID">編輯</a>
+                                        <a class="btn btn-sm btn-secondary ms-5" asp-action="Index">取消</a>
+                                    }
+                                    else if (@action == "Create")
+                                    {
+                                        <input type="submit" value="儲存" class="btn btn-sm btn-success" />
+                                        <a class="btn btn-sm btn-secondary ms-5" asp-action="Index">取消</a>
+                                    }
+                                    else if (@action == "Edit")
+                                    {
+                                        <input type="submit" value="儲存" class="btn btn-sm btn-warning" />
+                                        <a class="btn btn-sm btn-secondary ms-5" asp-action="Index">取消</a>
+                                    }
+                                    else if (@action == "Delete")
+                                    {
+                                        <input type="submit" value="刪除" class="btn btn-sm btn-danger" />
+                                        <a class="btn btn-sm btn-secondary ms-5" asp-action="Index">取消</a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+
+    </script>
+}

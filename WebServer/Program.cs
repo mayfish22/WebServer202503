@@ -78,7 +78,7 @@ public class Program
                 app.UseHsts(); // 啟用 HSTS（HTTP 嚴格傳輸安全性）
             }
 
-            app.UseHttpsRedirection(); // 強制使用 HTTPS
+            //app.UseHttpsRedirection(); // 強制使用 HTTPS
             app.UseRouting(); // 啟用路由中介軟體
 
             app.UseSession(); // 啟用 Session 支持

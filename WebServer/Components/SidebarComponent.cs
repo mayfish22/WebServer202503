@@ -41,6 +41,12 @@ public class SidebarComponent : ViewComponent // 繼承自 ViewComponent 類別
                     URL = "/FileStorage/Index",
                     Icon = "menu-icon tf-icons bx bx-images",
                 },
+                new MenuItem // 人臉特徵選項
+                {
+                    Title = "人臉特徵",
+                    URL = "/FaceFeature/Index",
+                    Icon = "menu-icon tf-icons bx bx-images",
+                },
                 new MenuItem // 個人設定選項，包含子選項
                 {
                     Title = "個人設定",

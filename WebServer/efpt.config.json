@@ -15,6 +15,10 @@
    "T4TemplatePath": null,
    "Tables": [
       {
+         "Name": "[dbo].[FaceFeature]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[FileStorage]",
          "ObjectType": 0
       },

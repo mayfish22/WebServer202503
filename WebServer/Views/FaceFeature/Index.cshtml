@@ -1,0 +1,128 @@
+﻿@section Styles {
+    <style>
+        .fixed-height-image {
+            height: 50px; /* 固定高度 */
+            object-fit: cover; /* 覆蓋容器 */
+        }
+    </style>
+}
+<div class="container-xxl flex-grow-1 container-p-y">
+    <table id="CustomTable" class="table table-striped">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>CreatedDT</th>
+                <th>ModifiedDT</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- 數據將通過 AJAX 加載 -->
+        </tbody>
+    </table>
+</div>
+
+
+@section Scripts {
+    <script>
+        $(async()=>{
+
+            // 定義 DataTable 的欄位配置
+            let columns = [
+                {
+                    "data": null, // 使用 null 以便自定義渲染
+                    "title": "#", // 標題
+                    "orderable": false, // 禁用排序功能
+                    "render": function(data, type, row) {
+                        // 返回按鈕，並將用戶 ID 作為參數
+                        let btn = `<a href="/FaceFeature/Detail/${row.id}" class="btn btn-primary btn-sm">檢視</a>`;
+                        btn += `<a href="/FaceFeature/Edit/${row.id}" class="btn btn-warning btn-sm ms-2">編輯</a>`;
+                        btn += `<a href="/FaceFeature/Delete/${row.id}" class="btn btn-danger btn-sm ms-2">刪除</a>`;
+                        return btn;
+                    }
+                },
+                { "data": "name", "title": "名稱" },
+                {
+                    "data": "createdDT",
+                    "title": "創建時間",
+                    "render": function(data, type, row) {
+                        return moment(data).format('YYYY-MM-DD HH:mm:ss'); // 使用 moment.js 格式化日期為 YYYY-MM-DD 格式
+                    }
+                },
+                {
+                    "data": "modifiedDT",
+                    "title": "修改時間",
+                    "render": function(data, type, row) {
+                        const m = moment(data);
+                        return m.isValid() ? m.format('YYYY-MM-DD HH:mm:ss') : '';
+                    }
+                }
+            ];
+
+            // 初始化 DataTable
+            $('#CustomTable').DataTable({
+                // 定義 DataTable 的 DOM 結構
+                "dom": "<'row row-filter m-2'f><'row row-length m-2'l>rt<'row row-info m-2 d-flex justify-content-between'ip>",
+
+                // 自動調整列寬
+                "autoWidth": false,
+
+                // 設定欄位配置
+                "columns": columns, // 使用定義的 columns 變數
+
+                // 設定語言文件的 URL
+                "language": {
+                    "url": '/langs/zh-HANT.json', // 指定 DataTables 的語言文件
+                },
+
+                // 設定每頁顯示的選項
+                "lengthMenu": [[5, 10, 20, 30, 40, 50], [5, 10, 20, 30, 40, 50]],
+
+                // 啟用分頁功能
+                "paging": true,
+
+                // 設定每頁的預設顯示數量
+                "pageLength": 10,
+
+                // 啟用處理指示器
+                "processing": true,
+
+                // 啟用伺服器端處理
+                "serverSide": true,
+
+                // AJAX 請求配置
+                "ajax": {
+                    "url": `/FaceFeature/GetData`, // 請求的 URL
+                    "type": "POST", // 請求方法
+                },
+
+                // 啟用列重排功能
+                "colReorder": { realtime: false },
+
+                // 啟用排序功能
+                "ordering": true,
+
+                // 設定初始排序
+                "order": [],
+
+                // 畫面繪製後的回調函數
+                "drawCallback": function () {
+                    // 獲取當前 DataTable 的 AJAX 返回的 JSON 數據
+                    let json = $('#CustomTable').DataTable().ajax.json();
+
+                    // 檢查 JSON 是否為 null 或 undefined
+                    if (json === null || json === undefined) {
+                        return; // 如果是，則不執行後續操作
+                    }
+
+                    // 檢查是否有錯誤信息
+                    if (json.errorMessage !== null && json.errorMessage !== undefined && json.errorMessage.length > 0) {
+                        alert(json.errorMessage); // 如果有錯誤信息，則顯示警告
+                        return; // 結束函數
+                    }
+                }
+            });
+
+        });
+    </script>
+}

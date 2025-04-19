@@ -13,6 +13,8 @@ public partial class WebServerDBContext : DbContext
     {
     }
 
+    public virtual DbSet<FaceFeature> FaceFeature { get; set; }
+
     public virtual DbSet<FileStorage> FileStorage { get; set; }
 
     public virtual DbSet<User> User { get; set; }
@@ -20,6 +22,18 @@ public partial class WebServerDBContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.UseCollation("Chinese_Taiwan_Stroke_CI_AS");
+
+        modelBuilder.Entity<FaceFeature>(entity =>
+        {
+            entity.HasKey(e => e.ID).HasName("PK__FaceFeat__3214EC2791168EF2");
+
+            entity.Property(e => e.ID).ValueGeneratedNever();
+            entity.Property(e => e.CreatedDT).HasColumnType("datetime");
+            entity.Property(e => e.ModifiedDT).HasColumnType("datetime");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(50);
+        });
 
         modelBuilder.Entity<FileStorage>(entity =>
         {

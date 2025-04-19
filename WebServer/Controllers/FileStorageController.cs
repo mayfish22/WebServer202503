@@ -284,4 +284,104 @@ public class FileStorageController : Controller
     }
     #endregion
 
+    #region UploadFaceFeature（上傳人臉特徵）
+    [HttpPost] // 定義 HTTP POST 方法
+    [AllowAnonymous] // 允許匿名使用者存取
+    [DisableFormValueModelBinding] // 禁用模型綁定，避免影響檔案上傳
+    public async Task<IActionResult> UploadFaceFeature()
+    {
+        try
+        {
+            var ids = new List<Guid>(); // 儲存上傳檔案的 ID
+
+            // 檢查請求是否為 Multipart Content-Type
+            if (!MultipartRequestHelper.IsMultipartContentType(Request.ContentType))
+            {
+                ModelState.AddModelError("File", "請求無法處理（錯誤 1）。");
+                return BadRequest(ModelState);
+            }
+
+            #region 取得使用者資訊
+            Guid? userId = null;
+            var httpContext = _httpContext.HttpContext;
+            if (httpContext != null)
+            {
+                var user = httpContext.User;
+                if (user.Identity.IsAuthenticated)
+                {
+                    var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+                    if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out Guid tmp))
+                        userId = tmp;
+                }
+            }
+            #endregion
+
+            var formAccumulator = new KeyValueAccumulator(); // 用於儲存表單資料
+            var trustedFileNameForDisplay = string.Empty;
+            var untrustedFileNameForStorage = string.Empty;
+            var streamedFileContent = Array.Empty<byte>();
+
+            var boundary = MultipartRequestHelper.GetBoundary(MediaTypeHeaderValue.Parse(Request.ContentType), _defaultFormOptions.MultipartBoundaryLengthLimit);
+            var reader = new MultipartReader(boundary, HttpContext.Request.Body);
+            var section = await reader.ReadNextSectionAsync();
+
+            while (section != null)
+            {
+                if (ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out var contentDisposition))
+                {
+                    // 處理檔案部分
+                    if (MultipartRequestHelper.HasFileContentDisposition(contentDisposition))
+                    {
+                        untrustedFileNameForStorage = contentDisposition.FileName.Value;
+                        trustedFileNameForDisplay = WebUtility.HtmlEncode(contentDisposition.FileName.Value);
+                        //不檢查檔案類型
+                        streamedFileContent = await FileHelper.ProcessStreamedFile(section, contentDisposition, ModelState, null, _fileSizeLimit);
+
+                        if (!ModelState.IsValid)
+                        {
+                            return BadRequest(ModelState);
+                        }
+
+                        var fileId = Guid.NewGuid();
+                        var filePath = Path.Combine(_targetFilePath, fileId.ToString());
+                        using (var targetStream = System.IO.File.Create(filePath))
+                        {
+                            await targetStream.WriteAsync(streamedFileContent);
+                        }
+
+                        // 將檔案資訊儲存到資料庫
+                        var fileStorage = new WebServer.Models.WebServerDB.FileStorage
+                        {
+                            ID = fileId,
+                            Type = nameof(Upload),
+                            FileName = trustedFileNameForDisplay,
+                            FileSize = streamedFileContent.Length,
+                            Path = filePath,
+                            CreatedUserID = userId,
+                            CreatedDT = DateTime.Now,
+                        };
+                        var faceFeature = new WebServer.Models.WebServerDB.FaceFeature
+                        {
+                            ID = fileId,
+                            FileStorageID = fileStorage.ID,
+                            Name = $"人臉特徵{DateTime.Now:yyyyMMddHHmmss}",
+                            CreatedDT = DateTime.Now,
+                        };
+                        await _webServerDB.FileStorage.AddAsync(fileStorage);
+                        await _webServerDB.FaceFeature.AddAsync(faceFeature);
+                        await _webServerDB.SaveChangesAsync();
+                        ids.Add(fileId);
+                    }
+                }
+                section = await reader.ReadNextSectionAsync();
+            }
+            return Json(new { ids = ids });
+        }
+        catch (Exception e)
+        {
+            _logger.LogWarning(e, "上傳人臉特徵時發生錯誤");
+            return BadRequest(e.Message);
+        }
+    }
+    #endregion
 }
