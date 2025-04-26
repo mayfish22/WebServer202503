@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using WebServer.Extensions;
+using WebServer.Hubs;
 using WebServer.Middlewares;
 using WebServer.Models.WebServerDB;
 using WebServer.Services;
@@ -66,6 +67,12 @@ public class Program
             // 設定 Serilog 日誌記錄器
             builder.ConfigureSerilog();
 
+            // 加入記憶體快取服務
+            builder.Services.AddMemoryCache();
+
+            // 設定 SignalR
+            builder.Services.AddSignalR();
+
             Log.Information("伺服器啟動"); // 記錄伺服器啟動的訊息
 
             var app = builder.Build(); // 建立 Web 應用程序
@@ -96,6 +103,8 @@ public class Program
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}") // 設定預設路由
                 .WithStaticAssets(); // 支持靜態資源
+
+            app.MapHub<FaceHub>("/faceHub");
 
             app.Run(); // 啟動應用程序
         }

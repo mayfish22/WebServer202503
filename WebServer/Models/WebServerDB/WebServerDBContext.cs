@@ -13,6 +13,8 @@ public partial class WebServerDBContext : DbContext
     {
     }
 
+    public virtual DbSet<Employee> Employee { get; set; }
+
     public virtual DbSet<FaceFeature> FaceFeature { get; set; }
 
     public virtual DbSet<FileStorage> FileStorage { get; set; }
@@ -22,6 +24,46 @@ public partial class WebServerDBContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.UseCollation("Chinese_Taiwan_Stroke_CI_AS");
+
+        modelBuilder.Entity<Employee>(entity =>
+        {
+            entity.HasKey(e => e.ID).HasName("PK__Employee__3214EC278C63A0AE");
+
+            entity.Property(e => e.ID)
+                .ValueGeneratedNever()
+                .HasComment("員工唯一識別碼（GUID），主鍵，系統自動產生。");
+            entity.Property(e => e.CreatedDT)
+                .HasComment("建立時間（系統自動記錄）。")
+                .HasColumnType("datetime");
+            entity.Property(e => e.Email)
+                .HasMaxLength(50)
+                .HasComment("員工的電子郵件地址，用於通知與聯絡。");
+            entity.Property(e => e.FaceFeature).HasComment("人臉辨識特徵檔案對應的 FileStorage 資料表主鍵 ID。");
+            entity.Property(e => e.HireDate).HasComment("員工正式入職公司的日期。");
+            entity.Property(e => e.Mobile)
+                .HasMaxLength(50)
+                .HasComment("員工的行動電話號碼，用於聯絡用途。");
+            entity.Property(e => e.ModifiedDT)
+                .HasComment("最後一次修改此筆資料的時間戳記，可為 NULL。")
+                .HasColumnType("datetime");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(20)
+                .HasComment("員工的中文或英文姓名。");
+            entity.Property(e => e.No)
+                .IsRequired()
+                .HasMaxLength(20)
+                .HasComment("員工編號（例如：EMP001），公司內部代碼，不可重複。");
+            entity.Property(e => e.Photo).HasComment("大頭照對應的 FileStorage 資料表主鍵 ID。");
+
+            entity.HasOne(d => d.FaceFeatureNavigation).WithMany(p => p.EmployeeFaceFeatureNavigation)
+                .HasForeignKey(d => d.FaceFeature)
+                .HasConstraintName("FK_Employee_FaceFeature");
+
+            entity.HasOne(d => d.PhotoNavigation).WithMany(p => p.EmployeePhotoNavigation)
+                .HasForeignKey(d => d.Photo)
+                .HasConstraintName("FK_Employee_Photo");
+        });
 
         modelBuilder.Entity<FaceFeature>(entity =>
         {

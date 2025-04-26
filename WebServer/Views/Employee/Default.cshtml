@@ -1,0 +1,206 @@
+﻿@model WebServer.Models.ViewModels.EmployeeViewModel
+@inject Microsoft.Extensions.Caching.Memory.IMemoryCache _cache
+
+@{
+    var controller = ViewContext.RouteData.Values["controller"].ToString();
+    var action = ViewContext.RouteData.Values["action"].ToString();
+
+    const string Esp32CamIpCacheKey = "Esp32CamIpAddress";
+    var esp32CamIpAddress = _cache.TryGetValue(Esp32CamIpCacheKey, out var cachedIp) ? cachedIp as string : null;
+}
+
+@section Styles {
+    <style>
+        iframe {
+            width: 100%;
+            height: calc(100vh - 120px); /* 100vh減掉上方可能的header高度 */
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        @@media (max-width: 768px) {
+            iframe
+
+        {
+            height: 400px; /* 小螢幕下不要太長，讓手機好操作 */
+        }
+
+        }
+    </style>
+}
+
+<div class="container-xxl mt-5">
+    <div class="row">
+        <!-- 左邊 Form -->
+        <div class="col-lg-6 col-md-12">
+            <form role="form" asp-action="@action" asp-route-id="@Model.Employee.ID">
+                <div class="card">
+                    <div class="card-body">
+                        <div asp-validation-summary="All" class="text-danger"></div>
+                        <input type="hidden" asp-for="Employee.ID" />
+                        <input type="hidden" asp-for="Employee.Photo" />
+                        <input type="hidden" asp-for="Employee.FaceFeature" />
+
+                        
+                        <div class="row">
+                            <div class="col-6">
+                                <!-- Employee No -->
+                                <div class="form-group row mt-4">
+                                    <label asp-for="Employee.No" class="control-label col-md-4 text-end"></label>
+                                    <div class="col-md-8">
+                                        @if (Model.IsReadonly)
+                                        {
+                                            <input readonly type="text" asp-for="Employee.No" class="form-control" />
+                                        }
+                                        else
+                                        {
+                                            <input type="text" asp-for="Employee.No" class="form-control" />
+                                        }
+                                        <span asp-validation-for="Employee.No" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <!-- Employee Name -->
+                                <div class="form-group row mt-4">
+                                    <label asp-for="Employee.Name" class="control-label col-md-4 text-end"></label>
+                                    <div class="col-md-8">
+                                        @if (Model.IsReadonly)
+                                        {
+                                            <input readonly type="text" asp-for="Employee.Name" class="form-control" />
+                                        }
+                                        else
+                                        {
+                                            <input type="text" asp-for="Employee.Name" class="form-control" />
+                                        }
+                                        <span asp-validation-for="Employee.Name" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <!-- Employee HireDate -->
+                                <div class="form-group row mt-4">
+                                    <label asp-for="Employee.HireDate" class="control-label col-md-4 text-end"></label>
+                                    <div class="col-md-8">
+                                        @if (Model.IsReadonly)
+                                        {
+                                            <input disabled type="date" asp-for="Employee.HireDate" class="form-control" />
+                                        }
+                                        else
+                                        {
+                                            <input type="date" asp-for="Employee.HireDate" class="form-control" />
+                                        }
+                                        <span asp-validation-for="Employee.HireDate" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <img id="liveFace" src="@(string.IsNullOrEmpty(Model.Employee.PhotoURL) ? string.Empty : Model.Employee.PhotoURL)" alt="Live Face" style="max-width:100%;border:1px solid #ccc;border-radius:8px;" />
+                            </div>
+                        </div>
+                        
+                        <!-- Employee Email -->
+                        <div class="form-group row mt-4">
+                            <label asp-for="Employee.Email" class="control-label col-md-2 text-end"></label>
+                            <div class="col-md-8">
+                                @if (Model.IsReadonly)
+                                {
+                                    <input readonly type="email" asp-for="Employee.Email" class="form-control" />
+                                }
+                                else
+                                {
+                                    <input type="email" asp-for="Employee.Email" class="form-control" />
+                                }
+                                <span asp-validation-for="Employee.Email" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Employee Mobile -->
+                        <div class="form-group row mt-4">
+                            <label asp-for="Employee.Mobile" class="control-label col-md-2 text-end"></label>
+                            <div class="col-md-8">
+                                @if (Model.IsReadonly)
+                                {
+                                    <input readonly type="text" asp-for="Employee.Mobile" class="form-control" />
+                                }
+                                else
+                                {
+                                    <input type="text" asp-for="Employee.Mobile" class="form-control" />
+                                }
+                                <span asp-validation-for="Employee.Mobile" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        
+
+                        <!-- 按鈕 -->
+                        <div class="d-flex justify-content-center mt-5 mb-3">
+                            @if (action == "Detail")
+                            {
+                                <a class="btn btn-sm btn-success" asp-action="Edit" asp-route-id="@Model.Employee.ID">編輯</a>
+                                <a class="btn btn-sm btn-secondary ms-3" asp-action="Index">取消</a>
+                            }
+                            else if (action == "Create")
+                            {
+                                <input type="submit" value="儲存" class="btn btn-sm btn-success" />
+                                <a class="btn btn-sm btn-secondary ms-3" asp-action="Index">取消</a>
+                            }
+                            else if (action == "Edit")
+                            {
+                                <input type="submit" value="儲存" class="btn btn-sm btn-warning" />
+                                <a class="btn btn-sm btn-secondary ms-3" asp-action="Index">取消</a>
+                            }
+                            else if (action == "Delete")
+                            {
+                                <input type="submit" value="刪除" class="btn btn-sm btn-danger" />
+                                <a class="btn btn-sm btn-secondary ms-3" asp-action="Index">取消</a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- 右邊 ESP32 畫面 -->
+        <div class="col-lg-6 col-md-12 d-flex align-items-center justify-content-center">
+            @if (!string.IsNullOrEmpty(esp32CamIpAddress) && (action == "Create" || action == "Edit"))
+            {
+                <iframe src="http://@esp32CamIpAddress" width="100%" height="600" allowfullscreen></iframe>
+            }
+            else if (action == "Create" || action == "Edit")
+            {
+                <div class="alert alert-warning" role="alert">找不到 ESP32-CAM 的 IP 位址</div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- 引入 SignalR 的 JavaScript 客戶端函式庫 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
+    <script>
+        // 建立一個 SignalR 連線物件，指向後端註冊的 FaceHub
+        const conn = new signalR.HubConnectionBuilder()
+            .withUrl("/faceHub")    // Hub 的 URL 路徑
+            .build();               // 建立連線實例
+
+        // 當伺服器呼叫 Clients.All.SendAsync("ReceiveFaceImage", fileId) 時觸發
+        conn.on("ReceiveFaceImage", fileId => {
+            // 組出下載影像的 URL，對應你後端 FileStorageController 的 Download action
+            const url = `/FileStorage/Download/${fileId}`;
+            // 更新畫面上顯示影像的 <img> 標籤
+            // liveFace 的 src 設為剛剛組好的 download URL
+            document.getElementById("liveFace").src = url;
+            // 將剛剛收到的 fileId 同步更新到隱藏欄位 Employee.Photo
+            // 方便後續表單送出時，一併將 image 的檔案識別傳回後端
+            document.querySelector('input[name="Employee.Photo"]').value = fileId;
+        });
+
+        // 當伺服器呼叫 Clients.All.SendAsync("ReceiveFaceFeature", fileId) 時觸發
+        conn.on("ReceiveFaceFeature", fileId => {
+            // 將收到的人臉特徵 fileId 同步更新到隱藏欄位 Employee.Feature
+            // 以便表單送出時，後端能用這個 ID 去取對應的特徵檔案
+            document.querySelector('input[name="Employee.Feature"]').value = fileId;
+        });
+
+        // 啟動與後端 Hub 的連線
+        conn.start()
+            .catch(e => console.error(e.toString()));  // 連線失敗時在 console 印出錯誤
+    </script>
+}

@@ -1,0 +1,100 @@
+﻿@section Styles {
+    <style>
+        .fixed-height-image {
+            height: 50px; /* 固定高度 */
+            object-fit: cover; /* 覆蓋容器 */
+        }
+    </style>
+}
+<div class="container-xxl flex-grow-1 container-p-y">
+    <a class="btn btn-sm btn-success" href="/Employee/Create">新增</a>
+
+    <table id="employeeTable" class="table table-striped">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>照片</th>
+                <th>編號</th>
+                <th>姓名</th>
+                <th>電子郵件</th>
+                <th>手機</th>
+                <th>入職日期</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- 資料將透過 AJAX 載入 -->
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        $(async () => {
+
+            // 定義 DataTable 的欄位設定
+            let columns = [
+                {
+                    "data": null,
+                    "title": "#",
+                    "orderable": false,
+                    "render": function(data, type, row) {
+                        let btn = `<a href="/Employee/Detail/${row.id}" class="btn btn-primary btn-sm">檢視</a>`;
+                        btn += `<a href="/Employee/Edit/${row.id}" class="btn btn-warning btn-sm ms-2">編輯</a>`;
+                        btn += `<a href="/Employee/Delete/${row.id}" class="btn btn-danger btn-sm ms-2">刪除</a>`;
+                        return btn;
+                    }
+                },
+                {
+                    "data": null,
+                    "title": "照片",
+                    "orderable": false, // 禁用排序功能
+                    "render": function(data, type, row) {
+                        if(row.photoURL == null || row.photoURL.length == 0)
+                            return `<span class="fixed-height-image"> </span>`;
+                        else
+                            return `<img class="fixed-height-image" src="${row.photoURL}"/>`;
+                    }
+                },
+                { "data": "no", "title": "編號" },
+                { "data": "name", "title": "姓名" },
+                { "data": "email", "title": "電子郵件" },
+                { "data": "mobile", "title": "手機" },
+                {
+                    "data": "hireDate",
+                    "title": "入職日期",
+                    "render": function(data, type, row) {
+                        return moment(data).format('YYYY-MM-DD');
+                    }
+                }
+            ];
+
+            // 初始化 DataTable
+            $('#employeeTable').DataTable({
+                "dom": "<'row row-filter m-2'f><'row row-length m-2'l>rt<'row row-info m-2 d-flex justify-content-between'ip>",
+                "autoWidth": false,
+                "columns": columns,
+                "language": {
+                    "url": '/langs/zh-HANT.json'
+                },
+                "lengthMenu": [[5, 10, 20, 30, 40, 50], [5, 10, 20, 30, 40, 50]],
+                "paging": true,
+                "pageLength": 10,
+                "processing": true,
+                "serverSide": true,
+                "ajax": {
+                    "url": `/Employee/GetData`,
+                    "type": "POST"
+                },
+                "colReorder": { realtime: false },
+                "ordering": true,
+                "order": [],
+                "drawCallback": function () {
+                    let json = $('#employeeTable').DataTable().ajax.json();
+                    if (json && json.errorMessage) {
+                        alert(json.errorMessage);
+                    }
+                }
+            });
+        });
+    </script>
+}

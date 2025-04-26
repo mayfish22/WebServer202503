@@ -20,4 +20,8 @@ public partial class FileStorage
     public Guid? CreatedUserID { get; set; }
 
     public DateTime CreatedDT { get; set; }
+
+    public virtual ICollection<Employee> EmployeeFaceFeatureNavigation { get; set; } = new List<Employee>();
+
+    public virtual ICollection<Employee> EmployeePhotoNavigation { get; set; } = new List<Employee>();
 }

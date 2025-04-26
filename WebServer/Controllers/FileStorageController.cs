@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Net.Http.Headers;
@@ -9,6 +10,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using WebServer.Attributes;
 using WebServer.Helpers;
+using WebServer.Hubs;
 using WebServer.Models.WebServerDB;
 
 namespace WebServer.Controllers;
@@ -24,13 +26,18 @@ public class FileStorageController : Controller
     private readonly string _targetFilePath; // 儲存檔案的路徑
     private readonly WebServerDBContext _webServerDB; // 資料庫上下文
     private readonly IHttpContextAccessor _httpContext; // 用於存取 HTTP 上下文
+    private readonly IHubContext<FaceHub> _faceHub;
 
     // 建構子，初始化日誌記錄器、資料庫上下文和 HTTP 上下文
-    public FileStorageController(ILogger<FileStorageController> logger, WebServerDBContext webServerDB, IHttpContextAccessor httpContext)
+    public FileStorageController(ILogger<FileStorageController> logger, 
+        WebServerDBContext webServerDB, 
+        IHttpContextAccessor httpContext,
+        IHubContext<FaceHub> faceHub)
     {
         _logger = logger;
         _webServerDB = webServerDB;
         _httpContext = httpContext;
+        _faceHub = faceHub;
 
         // 設定檔案儲存的目標路徑
         var programDataPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
@@ -371,6 +378,8 @@ public class FileStorageController : Controller
                         await _webServerDB.FaceFeature.AddAsync(faceFeature);
                         await _webServerDB.SaveChangesAsync();
                         ids.Add(fileId);
+                        // 推送檔案ID到前端
+                        await _faceHub.Clients.All.SendAsync("ReceiveFaceFeature", fileId.ToString());
                     }
                 }
                 section = await reader.ReadNextSectionAsync();
@@ -380,6 +389,101 @@ public class FileStorageController : Controller
         catch (Exception e)
         {
             _logger.LogWarning(e, "上傳人臉特徵時發生錯誤");
+            return BadRequest(e.Message);
+        }
+    }
+    #endregion
+
+    #region UploadFaceImage（上傳人臉照片）
+
+    [HttpPost] // 定義 HTTP POST 方法
+    [AllowAnonymous] // 允許匿名使用者存取
+    [DisableFormValueModelBinding] // 禁用模型綁定，避免影響檔案上傳
+    public async Task<IActionResult> UploadFaceImage()
+    {
+        try
+        {
+            var ids = new List<Guid>(); // 儲存上傳檔案的 ID
+
+            // 檢查請求是否為 Multipart Content-Type
+            if (!MultipartRequestHelper.IsMultipartContentType(Request.ContentType))
+            {
+                ModelState.AddModelError("File", "請求無法處理（錯誤 1）。");
+                return BadRequest(ModelState);
+            }
+
+            #region 取得使用者資訊
+            Guid? userId = null;
+            var httpContext = _httpContext.HttpContext;
+            if (httpContext != null)
+            {
+                var user = httpContext.User;
+                if (user.Identity.IsAuthenticated)
+                {
+                    var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+                    if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out Guid tmp))
+                        userId = tmp;
+                }
+            }
+            #endregion
+
+            var formAccumulator = new KeyValueAccumulator(); // 用於儲存表單資料
+            var trustedFileNameForDisplay = string.Empty;
+            var untrustedFileNameForStorage = string.Empty;
+            var streamedFileContent = Array.Empty<byte>();
+
+            var boundary = MultipartRequestHelper.GetBoundary(MediaTypeHeaderValue.Parse(Request.ContentType), _defaultFormOptions.MultipartBoundaryLengthLimit);
+            var reader = new MultipartReader(boundary, HttpContext.Request.Body);
+            var section = await reader.ReadNextSectionAsync();
+
+            while (section != null)
+            {
+                if (ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out var contentDisposition))
+                {
+                    // 處理檔案部分
+                    if (MultipartRequestHelper.HasFileContentDisposition(contentDisposition))
+                    {
+                        untrustedFileNameForStorage = contentDisposition.FileName.Value;
+                        trustedFileNameForDisplay = WebUtility.HtmlEncode(contentDisposition.FileName.Value);
+                        streamedFileContent = await FileHelper.ProcessStreamedFile(section, contentDisposition, ModelState, _permittedExtensions, _fileSizeLimit);
+
+                        if (!ModelState.IsValid)
+                        {
+                            return BadRequest(ModelState);
+                        }
+
+                        var fileId = Guid.NewGuid();
+                        var filePath = Path.Combine(_targetFilePath, fileId.ToString());
+                        using (var targetStream = System.IO.File.Create(filePath))
+                        {
+                            await targetStream.WriteAsync(streamedFileContent);
+                        }
+
+                        // 將檔案資訊儲存到資料庫
+                        await _webServerDB.FileStorage.AddAsync(new WebServer.Models.WebServerDB.FileStorage
+                        {
+                            ID = fileId,
+                            Type = nameof(Upload),
+                            FileName = trustedFileNameForDisplay,
+                            FileSize = streamedFileContent.Length,
+                            Path = filePath,
+                            CreatedUserID = userId,
+                            CreatedDT = DateTime.Now,
+                        });
+                        await _webServerDB.SaveChangesAsync();
+                        ids.Add(fileId);
+                        // 推送檔案ID到前端
+                        await _faceHub.Clients.All.SendAsync("ReceiveFaceImage", fileId.ToString());
+                    }
+                }
+                section = await reader.ReadNextSectionAsync();
+            }
+
+            return Json(new { ids = ids });
+        }
+        catch (Exception e)
+        {
+            _logger.LogWarning(e, "上傳檔案時發生錯誤");
             return BadRequest(e.Message);
         }
     }
