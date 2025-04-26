@@ -53,6 +53,12 @@ public class SidebarComponent : ViewComponent // 繼承自 ViewComponent 類別
                     URL = "/Employee/Index",
                     Icon = "menu-icon tf-icons bx bx-male",
                 },
+                new MenuItem // 出勤記錄
+                {
+                    Title = "出勤記錄",
+                    URL = "/ClockRecord/Index",
+                    Icon = "menu-icon tf-icons bx bx-time-five",
+                },
                 new MenuItem // 個人設定選項，包含子選項
                 {
                     Title = "個人設定",

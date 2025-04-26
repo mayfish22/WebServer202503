@@ -1,0 +1,88 @@
+﻿@section Styles {
+    <style>
+
+    </style>
+}
+<div class="container-xxl flex-grow-1 container-p-y">
+    <table id="customTable" class="table table-striped">
+        <thead>
+            <tr>
+                <th>編號</th>
+                <th>姓名</th>
+                <th>打卡時間</th>
+                <th>打卡類型</th>
+                <th>打卡地點</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- 資料將透過 AJAX 載入 -->
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <!-- 引入 SignalR 的 JavaScript 客戶端函式庫 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
+    <script>
+        $(async () => {
+
+            // 定義 DataTable 的欄位設定
+            let columns = [
+                { "data": "employeeNo", "title": "編號" },
+                { "data": "employeeName", "title": "姓名" },
+                {
+                    "data": "clockDateTime",
+                    "title": "打卡時間",
+                    "render": function(data, type, row) {
+                        return moment(data).format('YYYY-MM-DD hh:mm:ss');
+                    }
+                },
+                { "data": "type", "title": "打卡類型" },
+                { "data": "location", "title": "打卡地點" }
+            ];
+
+            // 初始化 DataTable
+            $('#customTable').DataTable({
+                "dom": "<'row row-filter m-2'f><'row row-length m-2'l>rt<'row row-info m-2 d-flex justify-content-between'ip>",
+                "autoWidth": false,
+                "columns": columns,
+                "language": {
+                    "url": '/langs/zh-HANT.json'
+                },
+                "lengthMenu": [[5, 10, 20, 30, 40, 50], [5, 10, 20, 30, 40, 50]],
+                "paging": true,
+                "pageLength": 10,
+                "processing": true,
+                "serverSide": true,
+                "ajax": {
+                    "url": `/ClockRecord/GetData`,
+                    "type": "POST"
+                },
+                "colReorder": { realtime: false },
+                "ordering": true,
+                "order": [],
+                "drawCallback": function () {
+                    let json = $('#customTable').DataTable().ajax.json();
+                    if (json && json.errorMessage) {
+                        alert(json.errorMessage);
+                    }
+                }
+            });
+
+            // 建立一個 SignalR 連線物件，指向後端註冊的 FaceHub
+            const conn = new signalR.HubConnectionBuilder()
+                .withUrl("/faceHub")    // Hub 的 URL 路徑
+                .build();               // 建立連線實例
+
+            // 當伺服器呼叫 Clients.All.SendAsync("ReceiveClockRecord", id) 時觸發
+            conn.on("ReceiveClockRecord", id => {
+                // 刷新 DataTable (保留目前分頁)
+                $('#customTable').DataTable().ajax.reload(null, false);
+            });
+
+            // 啟動與後端 Hub 的連線
+            conn.start()
+                .catch(e => console.error(e.toString()));  // 連線失敗時在 console 印出錯誤
+        });
+    </script>
+}

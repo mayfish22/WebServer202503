@@ -13,6 +13,8 @@ public partial class WebServerDBContext : DbContext
     {
     }
 
+    public virtual DbSet<ClockRecord> ClockRecord { get; set; }
+
     public virtual DbSet<Employee> Employee { get; set; }
 
     public virtual DbSet<FaceFeature> FaceFeature { get; set; }
@@ -24,6 +26,32 @@ public partial class WebServerDBContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.UseCollation("Chinese_Taiwan_Stroke_CI_AS");
+
+        modelBuilder.Entity<ClockRecord>(entity =>
+        {
+            entity.HasKey(e => e.ID).HasName("PK__ClockRec__3214EC27679B95EC");
+
+            entity.Property(e => e.ID)
+                .ValueGeneratedNever()
+                .HasComment("打卡記錄唯一識別碼 (GUID)");
+            entity.Property(e => e.ClockDateTime)
+                .HasComment("打卡發生的日期與時間，精確到毫秒")
+                .HasColumnType("datetime");
+            entity.Property(e => e.CreatedDT).HasComment("此筆紀錄的建立時間 (UTC 時間)");
+            entity.Property(e => e.EmployeeID).HasComment("關聯 Employee.ID 的外鍵 (員工識別碼)");
+            entity.Property(e => e.Location)
+                .HasMaxLength(100)
+                .HasComment("打卡地點或裝置標識 (可選，若沒有可為 NULL)");
+            entity.Property(e => e.Type)
+                .IsRequired()
+                .HasMaxLength(10)
+                .HasComment("打卡類型，如 In / Out / Break / Overtime 等");
+
+            entity.HasOne(d => d.Employee).WithMany(p => p.ClockRecord)
+                .HasForeignKey(d => d.EmployeeID)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ClockRecord_Employee");
+        });
 
         modelBuilder.Entity<Employee>(entity =>
         {

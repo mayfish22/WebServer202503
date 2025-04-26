@@ -57,6 +57,8 @@ public partial class Employee
     /// </summary>
     public DateTime? ModifiedDT { get; set; }
 
+    public virtual ICollection<ClockRecord> ClockRecord { get; set; } = new List<ClockRecord>();
+
     public virtual FileStorage FaceFeatureNavigation { get; set; }
 
     public virtual FileStorage PhotoNavigation { get; set; }

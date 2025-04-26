@@ -194,9 +194,9 @@
 
         // 當伺服器呼叫 Clients.All.SendAsync("ReceiveFaceFeature", fileId) 時觸發
         conn.on("ReceiveFaceFeature", fileId => {
-            // 將收到的人臉特徵 fileId 同步更新到隱藏欄位 Employee.Feature
+            // 將收到的人臉特徵 fileId 同步更新到隱藏欄位 Employee.FaceFeature
             // 以便表單送出時，後端能用這個 ID 去取對應的特徵檔案
-            document.querySelector('input[name="Employee.Feature"]').value = fileId;
+            document.querySelector('input[name="Employee.FaceFeature"]').value = fileId;
         });
 
         // 啟動與後端 Hub 的連線

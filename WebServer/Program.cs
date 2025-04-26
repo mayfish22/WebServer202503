@@ -82,7 +82,7 @@ public class Program
             {
                 app.UseExceptionHandler("/Home/Error"); // 使用自定義錯誤處理頁面
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts(); // 啟用 HSTS（HTTP 嚴格傳輸安全性）
+                //app.UseHsts(); // 啟用 HSTS（HTTP 嚴格傳輸安全性）
             }
 
             //app.UseHttpsRedirection(); // 強制使用 HTTPS

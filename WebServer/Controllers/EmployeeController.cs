@@ -175,7 +175,7 @@ public class EmployeeController : Controller
             employee.No = model.Employee.No?.Trim().ToUpper();
             employee.Name = model.Employee.Name.Trim();
             employee.Email = model.Employee.Email?.Trim().ToUpper();
-            employee.Mobile = model.Employee.Mobile.Trim();
+            employee.Mobile = model.Employee.Mobile?.Trim();
             employee.HireDate = model.Employee.HireDate;
             employee.Photo = model.Employee.Photo;
             employee.FaceFeature = model.Employee.FaceFeature;

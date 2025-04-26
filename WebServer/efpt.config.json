@@ -15,6 +15,10 @@
    "T4TemplatePath": null,
    "Tables": [
       {
+         "Name": "[dbo].[ClockRecord]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[Employee]",
          "ObjectType": 0
       },
